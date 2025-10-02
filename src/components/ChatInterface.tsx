@@ -4,7 +4,7 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { Badge } from "@/components/ui/badge";
-import { Send, Sparkles, Clock, CheckCircle } from "lucide-react";
+import { Send, MessageSquare, Clock, CheckCircle } from "lucide-react";
 
 interface Message {
   role: "user" | "assistant";
@@ -72,7 +72,7 @@ export const ChatInterface = () => {
       <Card className="md:col-span-2">
         <CardHeader>
           <CardTitle className="flex items-center gap-2">
-            <Sparkles className="h-5 w-5 text-primary" />
+            <MessageSquare className="h-5 w-5" />
             Direct Query Interface
           </CardTitle>
           <CardDescription>
