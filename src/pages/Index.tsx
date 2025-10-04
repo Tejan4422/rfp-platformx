@@ -6,6 +6,7 @@ import { ChatInterface } from "@/components/ChatInterface";
 import { ResponseDashboard } from "@/components/ResponseDashboard";
 import { KnowledgeBase } from "@/components/KnowledgeBase";
 import { Analytics } from "@/components/Analytics";
+import { HealthCheck } from "@/components/HealthCheck";
 
 const Index = () => {
   const [activeTab, setActiveTab] = useState("generate");
@@ -13,6 +14,12 @@ const Index = () => {
   return (
     <div className="min-h-screen bg-gradient-subtle">
       <HeroSection />
+      
+      {/* Health Check - Test API Connection */}
+      <div className="max-w-7xl mx-auto px-6 py-6">
+        <HealthCheck />
+      </div>
+      
       <NavigationTabs activeTab={activeTab} onTabChange={setActiveTab} />
       
       <main className="max-w-7xl mx-auto px-6 py-12">
