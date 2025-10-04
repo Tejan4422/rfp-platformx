@@ -4,11 +4,18 @@ import { Button } from "@/components/ui/button";
 import { Upload, FileText, AlertCircle, CheckCircle2, File } from "lucide-react";
 import { Alert, AlertDescription } from "@/components/ui/alert";
 import { Badge } from "@/components/ui/badge";
+import { useSession } from "@/contexts/SessionContext";
+import { useToast } from "@/hooks/use-toast";
+import { useMutation } from "@tanstack/react-query";
+
+const API_BASE_URL = "http://localhost:8001";
 
 export const DocumentUpload = () => {
+  const { setSessionId, setCurrentStep } = useSession();
+  const { toast } = useToast();
   const [isDragging, setIsDragging] = useState(false);
   const [uploadedFile, setUploadedFile] = useState<string | null>(null);
-  const [isProcessing, setIsProcessing] = useState(false);
+  const [requirementCount, setRequirementCount] = useState<number>(0);
 
   const handleDragOver = (e: React.DragEvent) => {
     e.preventDefault();
@@ -28,12 +35,41 @@ export const DocumentUpload = () => {
     }
   };
 
+  const uploadMutation = useMutation({
+    mutationFn: async (file: File) => {
+      const formData = new FormData();
+      formData.append("file", file);
+      
+      const response = await fetch(`${API_BASE_URL}/api/upload-rfp`, {
+        method: "POST",
+        body: formData,
+      });
+      
+      if (!response.ok) throw new Error("Upload failed");
+      return response.json();
+    },
+    onSuccess: (data) => {
+      setSessionId(data.session_id);
+      setRequirementCount(data.requirements_count || 0);
+      toast({
+        title: "Upload successful",
+        description: `Extracted ${data.requirements_count} requirements from ${uploadedFile}`,
+      });
+      setCurrentStep("requirements");
+    },
+    onError: (error) => {
+      toast({
+        title: "Upload failed",
+        description: error instanceof Error ? error.message : "Unknown error occurred",
+        variant: "destructive",
+      });
+      setUploadedFile(null);
+    },
+  });
+
   const handleFileUpload = (file: File) => {
     setUploadedFile(file.name);
-    setIsProcessing(true);
-    setTimeout(() => {
-      setIsProcessing(false);
-    }, 2000);
+    uploadMutation.mutate(file);
   };
 
   return (
@@ -76,22 +112,22 @@ export const DocumentUpload = () => {
 
           {uploadedFile && (
             <Alert className="mt-4">
-              {isProcessing ? (
+              {uploadMutation.isPending ? (
                 <>
                   <AlertCircle className="h-4 w-4" />
                   <AlertDescription>
                     Processing {uploadedFile}... Extracting requirements.
                   </AlertDescription>
                 </>
-              ) : (
+              ) : uploadMutation.isSuccess ? (
                 <>
                   <CheckCircle2 className="h-4 w-4 text-success" />
                   <AlertDescription className="flex items-center justify-between">
                     <span>Successfully processed {uploadedFile}</span>
-                    <Badge>23 requirements found</Badge>
+                    <Badge>{requirementCount} requirements found</Badge>
                   </AlertDescription>
                 </>
-              )}
+              ) : null}
             </Alert>
           )}
         </CardContent>
