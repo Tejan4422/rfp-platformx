@@ -36,6 +36,8 @@ export const SessionProvider = ({ children }: { children: ReactNode }) => {
   const [requirements, setRequirements] = useState<Requirement[]>([]);
   const [responses, setResponses] = useState<Response[]>([]);
   const [currentStep, setCurrentStep] = useState<"upload" | "requirements" | "generate" | "results">("upload");
+  
+  console.log("SessionProvider mounted - context available");
 
   const clearSession = () => {
     setSessionId(null);

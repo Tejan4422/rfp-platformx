@@ -9,10 +9,12 @@ import NotFound from "./pages/NotFound";
 
 const queryClient = new QueryClient();
 
-const App = () => (
-  <QueryClientProvider client={queryClient}>
-    <SessionProvider>
-      <TooltipProvider>
+const App = () => {
+  console.log("App component rendering with SessionProvider");
+  return (
+    <QueryClientProvider client={queryClient}>
+      <SessionProvider>
+        <TooltipProvider>
         <Toaster />
         <Sonner />
         <BrowserRouter>
@@ -25,6 +27,7 @@ const App = () => (
       </TooltipProvider>
     </SessionProvider>
   </QueryClientProvider>
-);
+  );
+};
 
 export default App;
