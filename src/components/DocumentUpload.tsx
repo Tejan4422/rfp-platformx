@@ -51,9 +51,10 @@ export const DocumentUpload = () => {
     onSuccess: (data) => {
       setSessionId(data.session_id);
       setRequirementCount(data.requirements_count || 0);
+      setUploadedFile(data.filename);
       toast({
         title: "Upload successful",
-        description: `Extracted ${data.requirements_count} requirements from ${uploadedFile}`,
+        description: `Extracted ${data.requirements_count} requirements from ${data.filename}`,
       });
       setCurrentStep("requirements");
     },

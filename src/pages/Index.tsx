@@ -23,21 +23,19 @@ const Index = () => {
       <main className="max-w-7xl mx-auto px-6 py-12">
         {activeTab === "generate" && (
           <div className="space-y-12">
-            {currentStep === "upload" && (
-              <section>
-                <h2 className="text-3xl font-bold mb-2">Upload RFP Document</h2>
-                <p className="text-muted-foreground mb-6">
-                  Start by uploading your RFP document to extract requirements automatically
-                </p>
-                <DocumentUpload />
-              </section>
-            )}
+            <section>
+              <h2 className="text-3xl font-bold mb-2">Upload RFP Document</h2>
+              <p className="text-muted-foreground mb-6">
+                Start by uploading your RFP document to extract requirements automatically
+              </p>
+              <DocumentUpload />
+            </section>
 
             {currentStep === "requirements" && (
               <section>
                 <h2 className="text-3xl font-bold mb-2">Review Requirements</h2>
                 <p className="text-muted-foreground mb-6">
-                  Review and edit the extracted requirements before generating responses
+                  Review and edit the extracted requirements before processing
                 </p>
                 <RequirementsManager />
               </section>
