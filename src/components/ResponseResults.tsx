@@ -31,20 +31,64 @@ export const ResponseResults = () => {
     ? Math.round(responses.reduce((sum, r) => sum + r.quality_score, 0) / responses.length)
     : 0;
 
-  const handleDownloadExcel = () => {
-    toast({
-      title: "Preparing download",
-      description: "Your Excel file will be ready shortly",
-    });
-    // TODO: Implement actual Excel download
+  const handleDownloadExcel = async () => {
+    if (!sessionId) return;
+    
+    try {
+      const response = await fetch(`http://localhost:8001/api/download-responses/${sessionId}?format=excel`);
+      if (!response.ok) throw new Error("Download failed");
+      
+      const blob = await response.blob();
+      const url = window.URL.createObjectURL(blob);
+      const a = document.createElement('a');
+      a.href = url;
+      a.download = `rfp-responses-${sessionId}.xlsx`;
+      document.body.appendChild(a);
+      a.click();
+      window.URL.revokeObjectURL(url);
+      document.body.removeChild(a);
+      
+      toast({
+        title: "Download successful",
+        description: "Excel report has been downloaded",
+      });
+    } catch (error) {
+      toast({
+        title: "Download failed",
+        description: error instanceof Error ? error.message : "Unknown error",
+        variant: "destructive",
+      });
+    }
   };
 
-  const handleDownloadPDF = () => {
-    toast({
-      title: "Preparing download",
-      description: "Your PDF file will be ready shortly",
-    });
-    // TODO: Implement actual PDF download
+  const handleDownloadPDF = async () => {
+    if (!sessionId) return;
+    
+    try {
+      const response = await fetch(`http://localhost:8001/api/download-responses/${sessionId}?format=pdf`);
+      if (!response.ok) throw new Error("Download failed");
+      
+      const blob = await response.blob();
+      const url = window.URL.createObjectURL(blob);
+      const a = document.createElement('a');
+      a.href = url;
+      a.download = `rfp-responses-${sessionId}.pdf`;
+      document.body.appendChild(a);
+      a.click();
+      window.URL.revokeObjectURL(url);
+      document.body.removeChild(a);
+      
+      toast({
+        title: "Download successful",
+        description: "PDF report has been downloaded",
+      });
+    } catch (error) {
+      toast({
+        title: "Download failed",
+        description: error instanceof Error ? error.message : "Unknown error",
+        variant: "destructive",
+      });
+    }
   };
 
   const toggleSources = (reqId: string) => {
