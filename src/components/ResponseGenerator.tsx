@@ -1,10 +1,11 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Progress } from "@/components/ui/progress";
 import { Slider } from "@/components/ui/slider";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Badge } from "@/components/ui/badge";
+import { Alert, AlertDescription } from "@/components/ui/alert";
 import { Rocket, Settings2, Loader2 } from "lucide-react";
 import { useSession } from "@/contexts/SessionContext";
 import { useToast } from "@/hooks/use-toast";
@@ -19,6 +20,8 @@ export const ResponseGenerator = () => {
   const [model, setModel] = useState("llama3");
   const [progress, setProgress] = useState(0);
   const [currentRequirement, setCurrentRequirement] = useState("");
+  const [startTime, setStartTime] = useState<number | null>(null);
+  const [elapsedTime, setElapsedTime] = useState(0);
 
   const generateMutation = useMutation({
     mutationFn: async () => {
@@ -81,112 +84,141 @@ export const ResponseGenerator = () => {
 
   const estimatedTime = Math.ceil((requirements.length * 3) / 60);
 
+  useEffect(() => {
+    if (generateMutation.isPending && startTime) {
+      const interval = setInterval(() => {
+        setElapsedTime(Math.floor((Date.now() - startTime) / 1000));
+      }, 1000);
+      return () => clearInterval(interval);
+    }
+  }, [generateMutation.isPending, startTime]);
+
+  const formatTime = (seconds: number) => {
+    const mins = Math.floor(seconds / 60);
+    const secs = seconds % 60;
+    return `${mins}:${secs.toString().padStart(2, '0')}`;
+  };
+
   return (
     <div className="space-y-6 animate-fade-in">
-      <Card>
-        <CardHeader>
-          <CardTitle className="flex items-center gap-2">
-            <Settings2 className="h-5 w-5" />
-            Configuration
-          </CardTitle>
-          <CardDescription>
-            Adjust RAG parameters and select the AI model for response generation
-          </CardDescription>
-        </CardHeader>
-        <CardContent className="space-y-6">
+      <div className="space-y-4">
+        <h2 className="text-2xl font-bold flex items-center gap-2">
+          ⚡ Generate Responses 🔗
+        </h2>
+
+        <Alert className="bg-green-950/50 border-green-900">
+          <AlertDescription>
+            🚀 Ready to generate responses using RAG pipeline!
+          </AlertDescription>
+        </Alert>
+
+        <div className="grid md:grid-cols-2 gap-6">
           <div className="space-y-3">
-            <div className="flex items-center justify-between">
-              <label className="text-sm font-medium">Context Chunks (top_k)</label>
-              <Badge variant="secondary">{topK}</Badge>
+            <label className="text-sm font-medium">Number of context chunks to retrieve</label>
+            <div className="flex items-center gap-4">
+              <Slider
+                value={[topK]}
+                onValueChange={(value) => setTopK(value[0])}
+                min={1}
+                max={10}
+                step={1}
+                disabled={generateMutation.isPending}
+                className="flex-1"
+              />
+              <span className="text-sm font-medium w-8">{topK}</span>
             </div>
-            <Slider
-              value={[topK]}
-              onValueChange={(value) => setTopK(value[0])}
-              min={1}
-              max={10}
-              step={1}
-              disabled={generateMutation.isPending}
-            />
-            <p className="text-xs text-muted-foreground">
-              Number of relevant context chunks to retrieve from the knowledge base
-            </p>
           </div>
 
           <div className="space-y-3">
-            <label className="text-sm font-medium">AI Model</label>
+            <label className="text-sm font-medium">Ollama Model</label>
             <Select value={model} onValueChange={setModel} disabled={generateMutation.isPending}>
               <SelectTrigger>
                 <SelectValue />
               </SelectTrigger>
               <SelectContent>
-                <SelectItem value="llama3">Llama 3 (Recommended)</SelectItem>
-                <SelectItem value="llama2">Llama 2</SelectItem>
-                <SelectItem value="mistral">Mistral</SelectItem>
+                <SelectItem value="llama3">llama3</SelectItem>
+                <SelectItem value="llama2">llama2</SelectItem>
+                <SelectItem value="mistral">mistral</SelectItem>
               </SelectContent>
             </Select>
           </div>
-        </CardContent>
-      </Card>
+        </div>
 
-      <Card>
-        <CardHeader>
-          <CardTitle className="flex items-center gap-2">
-            <Rocket className="h-5 w-5" />
-            Generate Responses
-          </CardTitle>
-          <CardDescription>
-            Ready to process {requirements.length} requirement{requirements.length !== 1 ? "s" : ""}
-          </CardDescription>
-        </CardHeader>
-        <CardContent className="space-y-6">
-          <div className="flex items-center justify-between p-4 bg-muted/50 rounded-lg">
-            <div>
-              <p className="text-sm font-medium">Estimated Processing Time</p>
-              <p className="text-2xl font-bold text-primary">~{estimatedTime} min</p>
-            </div>
-            <div className="text-right">
-              <p className="text-sm text-muted-foreground">Using {model}</p>
-              <p className="text-sm text-muted-foreground">Top-{topK} context</p>
-            </div>
-          </div>
+        <Alert className="bg-blue-950/50 border-blue-900">
+          <AlertDescription>
+            🏬 Processing {requirements.length} requirements (estimated time: ~{estimatedTime * 60} seconds)
+          </AlertDescription>
+        </Alert>
 
-          {generateMutation.isPending && (
-            <div className="space-y-3">
-              <Progress value={progress} className="h-2" />
-              <div className="flex items-center justify-between text-sm">
-                <span className="text-muted-foreground">
-                  Processing {Math.floor((progress / 100) * requirements.length)}/{requirements.length}
-                </span>
-                <span className="font-medium">{Math.floor(progress)}%</span>
-              </div>
-              {currentRequirement && (
-                <p className="text-sm text-muted-foreground line-clamp-2">
-                  Currently processing: "{currentRequirement}"
-                </p>
-              )}
-            </div>
+        <Button
+          onClick={() => {
+            setStartTime(Date.now());
+            setElapsedTime(0);
+            handleGenerate();
+          }}
+          disabled={requirements.length === 0 || generateMutation.isPending}
+          className="w-full bg-destructive hover:bg-destructive/90"
+          size="lg"
+        >
+          {generateMutation.isPending ? (
+            <>
+              <Loader2 className="h-5 w-5 mr-2 animate-spin" />
+              Generating Responses...
+            </>
+          ) : (
+            <>
+              🚀 Generate All Responses
+            </>
           )}
+        </Button>
 
-          <Button
-            onClick={handleGenerate}
-            disabled={requirements.length === 0 || generateMutation.isPending}
-            className="w-full"
-            size="lg"
-          >
-            {generateMutation.isPending ? (
-              <>
-                <Loader2 className="h-5 w-5 mr-2 animate-spin" />
-                Generating Responses...
-              </>
-            ) : (
-              <>
-                <Rocket className="h-5 w-5 mr-2" />
-                Generate All Responses
-              </>
+        {generateMutation.isPending && (
+          <div className="space-y-3">
+            <Progress value={progress} className="h-2" />
+            
+            <div className="grid md:grid-cols-2 gap-3">
+              <Alert className="bg-green-950/50 border-green-900">
+                <AlertDescription>
+                  ✅ Completed: {Math.floor((progress / 100) * requirements.length)}/{requirements.length}
+                </AlertDescription>
+              </Alert>
+              <Alert className="bg-blue-950/50 border-blue-900">
+                <AlertDescription>
+                  ⏱️ ETA: {formatTime(elapsedTime)}
+                </AlertDescription>
+              </Alert>
+            </div>
+
+            {currentRequirement && (
+              <Alert className="bg-blue-950/50 border-blue-900">
+                <AlertDescription className="line-clamp-1">
+                  🔄 Processing: {currentRequirement.substring(0, 50)}...
+                </AlertDescription>
+              </Alert>
             )}
-          </Button>
-        </CardContent>
-      </Card>
+          </div>
+        )}
+
+        {generateMutation.isSuccess && !generateMutation.isPending && (
+          <>
+            <Alert className="bg-green-950/50 border-green-900">
+              <AlertDescription>
+                🎉 Generated responses for {requirements.length} requirements in {formatTime(elapsedTime)}!
+              </AlertDescription>
+            </Alert>
+
+            <details className="group">
+              <summary className="flex items-center gap-2 cursor-pointer p-3 bg-card/50 rounded-lg border hover:bg-card transition-colors">
+                <span className="group-open:rotate-90 transition-transform">▶</span>
+                <span className="text-sm font-medium">📄 Preview Generated Responses</span>
+              </summary>
+              <div className="mt-2 p-4 bg-card/30 rounded-lg border text-sm text-muted-foreground">
+                <p>Click "Continue" to view and download results</p>
+              </div>
+            </details>
+          </>
+        )}
+      </div>
     </div>
   );
 };
