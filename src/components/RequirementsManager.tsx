@@ -101,103 +101,111 @@ export const RequirementsManager = () => {
 
   return (
     <div className="space-y-6 animate-fade-in">
-      <Card>
-        <CardHeader>
-          <div className="flex items-center justify-between">
-            <div>
-              <CardTitle className="flex items-center gap-2">
-                <CheckCircle2 className="h-5 w-5 text-success" />
-                Requirements Manager
-              </CardTitle>
-              <CardDescription>
-                Review, edit, and manage extracted requirements before generating responses
-              </CardDescription>
-            </div>
-            <Badge variant="secondary" className="text-lg px-4 py-2">
-              {localRequirements.length} Requirements
-            </Badge>
-          </div>
-        </CardHeader>
-        <CardContent className="space-y-4">
-          <Accordion type="single" collapsible className="w-full">
-            {localRequirements.map((req, index) => (
-              <AccordionItem key={req.id} value={req.id}>
-                <AccordionTrigger className="hover:no-underline">
-                  <div className="flex items-center gap-3 text-left">
-                    <Badge variant="outline">{index + 1}</Badge>
-                    <span className="line-clamp-1">
-                      {req.text || "New requirement (click to edit)"}
-                    </span>
-                  </div>
-                </AccordionTrigger>
-                <AccordionContent>
-                  <div className="space-y-3 pt-2">
-                    {editingId === req.id ? (
-                      <>
-                        <Textarea
-                          value={editText}
-                          onChange={(e) => setEditText(e.target.value)}
-                          placeholder="Enter requirement text..."
-                          className="min-h-[100px]"
-                          autoFocus
-                        />
-                        <div className="flex gap-2">
-                          <Button
-                            size="sm"
-                            onClick={() => handleSave(req.id)}
-                            disabled={!editText.trim()}
-                          >
-                            <Save className="h-4 w-4 mr-2" />
-                            Save
-                          </Button>
-                          <Button size="sm" variant="outline" onClick={handleCancel}>
-                            <X className="h-4 w-4 mr-2" />
-                            Cancel
-                          </Button>
-                        </div>
-                      </>
-                    ) : (
-                      <>
-                        <p className="text-sm text-foreground/80 p-4 bg-muted/50 rounded-md">
-                          {req.text}
-                        </p>
-                        <div className="flex gap-2">
-                          <Button size="sm" variant="outline" onClick={() => handleEdit(req)}>
-                            <Edit className="h-4 w-4 mr-2" />
-                            Edit
-                          </Button>
-                          <Button
-                            size="sm"
-                            variant="outline"
-                            onClick={() => handleDelete(req.id)}
-                          >
-                            <Trash2 className="h-4 w-4 mr-2" />
-                            Delete
-                          </Button>
-                        </div>
-                      </>
-                    )}
-                  </div>
-                </AccordionContent>
-              </AccordionItem>
-            ))}
-          </Accordion>
+      <div className="space-y-4">
+        <div className="flex items-center justify-between mb-4">
+          <h2 className="text-2xl font-bold flex items-center gap-2">
+            📋 Extracted Requirements
+          </h2>
+          <label className="flex items-center gap-2 cursor-pointer">
+            <input
+              type="checkbox"
+              checked={!!editingId}
+              onChange={() => setEditingId(null)}
+              className="rounded"
+            />
+            <span className="text-sm">✏️ Edit Requirements</span>
+          </label>
+        </div>
 
-          <div className="flex gap-3 pt-4 border-t">
-            <Button variant="outline" onClick={handleAddNew} className="flex-1">
-              <Plus className="h-4 w-4 mr-2" />
-              Add New Requirement
-            </Button>
-            <Button
-              onClick={handleSaveAll}
-              disabled={localRequirements.length === 0}
-              className="flex-1"
+        <Accordion type="single" collapsible className="w-full space-y-2">
+          {localRequirements.map((req, index) => (
+            <AccordionItem 
+              key={req.id} 
+              value={req.id}
+              className="border rounded-lg bg-card/50 px-4"
             >
-              Save All & Continue
-            </Button>
+              <AccordionTrigger className="hover:no-underline py-3">
+                <span className="text-sm font-medium text-left">
+                  Requirement {index + 1}
+                </span>
+              </AccordionTrigger>
+              <AccordionContent>
+                <div className="space-y-3 pt-2 pb-3">
+                  {editingId === req.id ? (
+                    <>
+                      <Textarea
+                        value={editText}
+                        onChange={(e) => setEditText(e.target.value)}
+                        placeholder="Enter requirement text..."
+                        className="min-h-[100px]"
+                        autoFocus
+                      />
+                      <div className="flex gap-2">
+                        <Button
+                          size="sm"
+                          onClick={() => handleSave(req.id)}
+                          disabled={!editText.trim()}
+                        >
+                          <Save className="h-4 w-4 mr-2" />
+                          Save
+                        </Button>
+                        <Button size="sm" variant="outline" onClick={handleCancel}>
+                          <X className="h-4 w-4 mr-2" />
+                          Cancel
+                        </Button>
+                      </div>
+                    </>
+                  ) : (
+                    <>
+                      <p className="text-sm text-foreground/90">
+                        {req.text}
+                      </p>
+                      <div className="flex gap-2">
+                        <Button size="sm" variant="outline" onClick={() => handleEdit(req)}>
+                          <Edit className="h-4 w-4 mr-2" />
+                          Edit
+                        </Button>
+                        <Button
+                          size="sm"
+                          variant="outline"
+                          onClick={() => handleDelete(req.id)}
+                        >
+                          <Trash2 className="h-4 w-4 mr-2" />
+                          Delete
+                        </Button>
+                      </div>
+                    </>
+                  )}
+                </div>
+              </AccordionContent>
+            </AccordionItem>
+          ))}
+        </Accordion>
+
+        <details className="group">
+          <summary className="flex items-center gap-2 cursor-pointer p-3 bg-card/50 rounded-lg border hover:bg-card transition-colors">
+            <span className="group-open:rotate-90 transition-transform">▶</span>
+            <span className="text-sm font-medium">🏬 Vector Store Information</span>
+          </summary>
+          <div className="mt-2 p-4 bg-card/30 rounded-lg border text-sm text-muted-foreground">
+            <p>Vector store contains {localRequirements.length} requirement embeddings</p>
           </div>
-        </CardContent>
-      </Card>
+        </details>
+
+        <div className="flex gap-3 pt-4">
+          <Button variant="outline" onClick={handleAddNew} className="flex-1">
+            <Plus className="h-4 w-4 mr-2" />
+            Add New Requirement
+          </Button>
+          <Button
+            onClick={handleSaveAll}
+            disabled={localRequirements.length === 0}
+            className="flex-1 bg-destructive hover:bg-destructive/90"
+          >
+            🚀 Process All Requirements
+          </Button>
+        </div>
+      </div>
     </div>
   );
 };
