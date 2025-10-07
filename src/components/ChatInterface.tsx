@@ -4,13 +4,17 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { Badge } from "@/components/ui/badge";
-import { Send, MessageSquare, Clock, CheckCircle } from "lucide-react";
+import { Send, MessageSquare, Clock, CheckCircle, Loader2 } from "lucide-react";
+import { useToast } from "@/hooks/use-toast";
+
+const API_BASE_URL = "http://localhost:8001";
 
 interface Message {
   role: "user" | "assistant";
   content: string;
   quality?: "excellent" | "good" | "needs-review";
   timestamp?: string;
+  loading?: boolean;
 }
 
 export const ChatInterface = () => {
@@ -22,6 +26,8 @@ export const ChatInterface = () => {
     }
   ]);
   const [input, setInput] = useState("");
+  const [isLoading, setIsLoading] = useState(false);
+  const { toast } = useToast();
 
   const quickQuestions = [
     "What are your company's core competencies?",
@@ -30,8 +36,8 @@ export const ChatInterface = () => {
     "Tell me about your team's experience"
   ];
 
-  const handleSend = () => {
-    if (!input.trim()) return;
+  const handleSend = async () => {
+    if (!input.trim() || isLoading) return;
 
     const userMessage: Message = {
       role: "user",
@@ -39,15 +45,70 @@ export const ChatInterface = () => {
       timestamp: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })
     };
 
-    const assistantMessage: Message = {
+    // Add user message and loading message
+    const loadingMessage: Message = {
       role: "assistant",
-      content: "Based on your knowledge base, here's a comprehensive response addressing this requirement with relevant case studies and examples from past successful proposals.",
-      quality: "excellent",
+      content: "Generating response...",
+      loading: true,
       timestamp: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })
     };
 
-    setMessages([...messages, userMessage, assistantMessage]);
+    setMessages(prev => [...prev, userMessage, loadingMessage]);
     setInput("");
+    setIsLoading(true);
+
+    try {
+      const response = await fetch(`${API_BASE_URL}/api/query`, {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({
+          query: input,
+          top_k: 3
+        }),
+      });
+
+      if (!response.ok) {
+        throw new Error(`HTTP error! status: ${response.status}`);
+      }
+
+      const data = await response.json();
+
+      if (data.success) {
+        const assistantMessage: Message = {
+          role: "assistant",
+          content: data.data.answer,
+          quality: data.data.quality_score >= 90 ? "excellent" : data.data.quality_score >= 75 ? "good" : "needs-review",
+          timestamp: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })
+        };
+
+        // Replace loading message with actual response
+        setMessages(prev => prev.slice(0, -1).concat(assistantMessage));
+      } else {
+        throw new Error(data.message || "Failed to get response");
+      }
+    } catch (error) {
+      console.error("Error calling direct query API:", error);
+      
+      const errorMessage: Message = {
+        role: "assistant",
+        content: "Sorry, I encountered an error while processing your query. Please make sure the backend server is running and try again.",
+        quality: "needs-review",
+        timestamp: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })
+      };
+
+      // Replace loading message with error message
+      setMessages(prev => prev.slice(0, -1).concat(errorMessage));
+      
+      toast({
+        title: "Query Failed",
+        description: "Could not connect to the AI service. Please check if the backend is running.",
+        variant: "destructive",
+      });
+    } finally {
+      setIsLoading(false);
+    }
   };
 
   const getQualityBadge = (quality?: string) => {
@@ -94,7 +155,10 @@ export const ChatInterface = () => {
                         : "bg-muted"
                     }`}
                   >
-                    <p className="text-sm">{msg.content}</p>
+                    <div className="flex items-center gap-2">
+                      {msg.loading && <Loader2 className="h-4 w-4 animate-spin" />}
+                      <p className="text-sm">{msg.content}</p>
+                    </div>
                     <div className="flex items-center gap-2 mt-2">
                       <span className="text-xs opacity-70 flex items-center gap-1">
                         <Clock className="h-3 w-3" />
@@ -114,9 +178,10 @@ export const ChatInterface = () => {
               value={input}
               onChange={(e) => setInput(e.target.value)}
               onKeyPress={(e) => e.key === "Enter" && handleSend()}
+              disabled={isLoading}
             />
-            <Button onClick={handleSend} size="icon">
-              <Send className="h-4 w-4" />
+            <Button onClick={handleSend} size="icon" disabled={isLoading || !input.trim()}>
+              {isLoading ? <Loader2 className="h-4 w-4 animate-spin" /> : <Send className="h-4 w-4" />}
             </Button>
           </div>
         </CardContent>

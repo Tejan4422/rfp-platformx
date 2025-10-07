@@ -18,20 +18,29 @@ export const RequirementsManager = () => {
   const [editText, setEditText] = useState("");
   const [localRequirements, setLocalRequirements] = useState<Requirement[]>(requirements);
 
+  // Sync with session context when requirements change
+  useEffect(() => {
+    console.log("RequirementsManager: Session requirements changed:", requirements);
+    setLocalRequirements(requirements);
+  }, [requirements]);
+
   const { data, isLoading } = useQuery({
     queryKey: ["requirements", sessionId],
     queryFn: async () => {
       if (!sessionId) return null;
+      console.log("RequirementsManager: Fetching requirements for session:", sessionId);
       const response = await fetch(`${API_BASE_URL}/api/requirements/${sessionId}`);
       if (!response.ok) throw new Error("Failed to fetch requirements");
       return response.json();
     },
-    enabled: !!sessionId,
+    enabled: !!sessionId && requirements.length === 0, // Only fetch if no requirements in context
   });
 
   useEffect(() => {
-    if (data?.requirements) {
-      const reqs = data.requirements.map((req: string, index: number) => ({
+    console.log("RequirementsManager: API data changed:", data);
+    if (data?.data?.requirements && requirements.length === 0) {
+      console.log("RequirementsManager: Converting API requirements to local format");
+      const reqs = data.data.requirements.map((req: string, index: number) => ({
         id: `req-${index}`,
         text: req,
         original_text: req,
@@ -39,7 +48,9 @@ export const RequirementsManager = () => {
       setLocalRequirements(reqs);
       setRequirements(reqs);
     }
-  }, [data]);
+  }, [data, requirements.length, setRequirements]);
+
+  console.log("RequirementsManager: Rendering with localRequirements:", localRequirements);
 
   const handleEdit = (req: Requirement) => {
     setEditingId(req.id);
@@ -88,6 +99,32 @@ export const RequirementsManager = () => {
     });
     setCurrentStep("generate");
   };
+
+  if (isLoading) {
+    return (
+      <div className="space-y-6 animate-fade-in">
+        <div className="text-center py-8">
+          <p>Loading requirements...</p>
+        </div>
+      </div>
+    );
+  }
+
+  if (localRequirements.length === 0) {
+    return (
+      <div className="space-y-6 animate-fade-in">
+        <div className="text-center py-8">
+          <p className="text-muted-foreground">No requirements found. Please upload a document first.</p>
+          <Button 
+            className="mt-4"
+            onClick={() => setCurrentStep("upload")}
+          >
+            Back to Upload
+          </Button>
+        </div>
+      </div>
+    );
+  }
 
   if (isLoading) {
     return (

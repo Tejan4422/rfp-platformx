@@ -25,6 +25,8 @@ export const ResponseGenerator = () => {
 
   const generateMutation = useMutation({
     mutationFn: async () => {
+      if (!sessionId) throw new Error("No session ID available");
+      
       const response = await fetch(`${API_BASE_URL}/api/generate-responses`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
@@ -35,15 +37,28 @@ export const ResponseGenerator = () => {
           session_id: sessionId,
         }),
       });
-      if (!response.ok) throw new Error("Failed to generate responses");
+      if (!response.ok) {
+        const errorData = await response.json().catch(() => ({}));
+        throw new Error(errorData.detail || `HTTP ${response.status}: Failed to generate responses`);
+      }
       return response.json();
     },
     onSuccess: (data) => {
-      setResponses(data.responses || []);
+      // Map the API response to the expected frontend format
+      const mappedResponses = data.data?.responses?.map((response: any, index: number) => ({
+        requirement_id: `req-${index}`,
+        requirement: response.requirement,
+        response: response.answer || "No response generated",
+        quality_score: response.quality_score || 0,
+        quality_status: response.quality_status,
+        context_sources: response.context || []
+      })) || [];
+      
+      setResponses(mappedResponses);
       setProgress(100);
       toast({
         title: "Generation complete",
-        description: `Successfully generated ${data.responses?.length || 0} responses`,
+        description: `Successfully generated responses for ${data.data?.summary?.successful_responses || 0}/${data.data?.summary?.total_requirements || 0} requirements`,
       });
       setTimeout(() => {
         setCurrentStep("results");

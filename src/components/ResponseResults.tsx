@@ -33,17 +33,27 @@ export const ResponseResults = () => {
     : 0;
 
   const handleDownloadExcel = async () => {
-    if (!sessionId) return;
+    if (!sessionId) {
+      toast({
+        title: "Download failed",
+        description: "No session ID available",
+        variant: "destructive",
+      });
+      return;
+    }
     
     try {
       const response = await fetch(`http://localhost:8001/api/download-responses/${sessionId}?format=excel`);
-      if (!response.ok) throw new Error("Download failed");
+      if (!response.ok) {
+        const errorData = await response.json().catch(() => ({}));
+        throw new Error(errorData.detail || `HTTP ${response.status}: Download failed`);
+      }
       
       const blob = await response.blob();
       const url = window.URL.createObjectURL(blob);
       const a = document.createElement('a');
       a.href = url;
-      a.download = `rfp-responses-${sessionId}.xlsx`;
+      a.download = `rfp-responses-${sessionId.substring(0, 8)}-${new Date().toISOString().split('T')[0]}.xlsx`;
       document.body.appendChild(a);
       a.click();
       window.URL.revokeObjectURL(url);
@@ -63,17 +73,27 @@ export const ResponseResults = () => {
   };
 
   const handleDownloadPDF = async () => {
-    if (!sessionId) return;
+    if (!sessionId) {
+      toast({
+        title: "Download failed",
+        description: "No session ID available",
+        variant: "destructive",
+      });
+      return;
+    }
     
     try {
       const response = await fetch(`http://localhost:8001/api/download-responses/${sessionId}?format=pdf`);
-      if (!response.ok) throw new Error("Download failed");
+      if (!response.ok) {
+        const errorData = await response.json().catch(() => ({}));
+        throw new Error(errorData.detail || `HTTP ${response.status}: Download failed`);
+      }
       
       const blob = await response.blob();
       const url = window.URL.createObjectURL(blob);
       const a = document.createElement('a');
       a.href = url;
-      a.download = `rfp-responses-${sessionId}.pdf`;
+      a.download = `rfp-responses-${sessionId.substring(0, 8)}-${new Date().toISOString().split('T')[0]}.pdf`;
       document.body.appendChild(a);
       a.click();
       window.URL.revokeObjectURL(url);

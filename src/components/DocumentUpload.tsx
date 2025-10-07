@@ -11,11 +11,12 @@ import { useMutation } from "@tanstack/react-query";
 const API_BASE_URL = "http://localhost:8001";
 
 export const DocumentUpload = () => {
-  const { setSessionId, setCurrentStep } = useSession();
+  const { sessionId, setSessionId, setCurrentStep, setRequirements } = useSession();
   const { toast } = useToast();
   const [isDragging, setIsDragging] = useState(false);
   const [uploadedFile, setUploadedFile] = useState<string | null>(null);
   const [requirementCount, setRequirementCount] = useState<number>(0);
+  const [currentSessionId, setCurrentSessionId] = useState<string | null>(null);
 
   const handleDragOver = (e: React.DragEvent) => {
     e.preventDefault();
@@ -49,14 +50,30 @@ export const DocumentUpload = () => {
       return response.json();
     },
     onSuccess: (data) => {
-      setSessionId(data.session_id);
-      setRequirementCount(data.requirements_count || 0);
-      setUploadedFile(data.filename);
+      const sessionIdValue = data.session_id;
+      setSessionId(sessionIdValue);
+      setCurrentSessionId(sessionIdValue);
+      
+      // Convert requirements array to the expected format
+      const formattedRequirements = data.requirements?.map((req: string, index: number) => ({
+        id: `req-${index}`,
+        text: req,
+        original_text: req
+      })) || [];
+      
+      setRequirements(formattedRequirements);
+      setRequirementCount(data.requirements?.length || 0);
+      setUploadedFile(data.file_info?.filename || "Unknown file");
+      
       toast({
         title: "Upload successful",
-        description: `Extracted ${data.requirements_count} requirements from ${data.filename}`,
+        description: `Extracted ${data.requirements?.length || 0} requirements from ${data.file_info?.filename || "your file"}`,
       });
-      setCurrentStep("requirements");
+      
+      // If requirements were extracted successfully, go to requirements step
+      if (data.requirements && data.requirements.length > 0) {
+        setCurrentStep("requirements");
+      }
     },
     onError: (error) => {
       toast({
@@ -65,6 +82,44 @@ export const DocumentUpload = () => {
         variant: "destructive",
       });
       setUploadedFile(null);
+    },
+  });
+
+  const extractMutation = useMutation({
+    mutationFn: async () => {
+      if (!currentSessionId) throw new Error("No session ID available");
+      
+      const response = await fetch(`${API_BASE_URL}/api/requirements/${currentSessionId}`, {
+        method: "GET",
+      });
+      
+      if (!response.ok) throw new Error("Failed to extract requirements");
+      return response.json();
+    },
+    onSuccess: (data) => {
+      // Convert requirements array to the expected format
+      const formattedRequirements = data.data.requirements?.map((req: string, index: number) => ({
+        id: `req-${index}`,
+        text: req,
+        original_text: req
+      })) || [];
+      
+      setRequirements(formattedRequirements);
+      setRequirementCount(formattedRequirements.length);
+      
+      toast({
+        title: "Requirements extracted",
+        description: `Found ${formattedRequirements.length} requirements`,
+      });
+      
+      setCurrentStep("requirements");
+    },
+    onError: (error) => {
+      toast({
+        title: "Extraction failed",
+        description: error instanceof Error ? error.message : "Failed to extract requirements",
+        variant: "destructive",
+      });
     },
   });
 
@@ -146,7 +201,14 @@ export const DocumentUpload = () => {
               <Alert className="bg-yellow-950/50 border-yellow-900">
                 <AlertCircle className="h-4 w-4" />
                 <AlertDescription>
-                  Processing {uploadedFile}... Extracting requirements.
+                  Processing {uploadedFile}... Uploading file.
+                </AlertDescription>
+              </Alert>
+            ) : extractMutation.isPending ? (
+              <Alert className="bg-yellow-950/50 border-yellow-900">
+                <AlertCircle className="h-4 w-4" />
+                <AlertDescription>
+                  Extracting requirements from {uploadedFile}...
                 </AlertDescription>
               </Alert>
             ) : uploadMutation.isSuccess ? (
@@ -157,12 +219,22 @@ export const DocumentUpload = () => {
                     🔗 Uploaded file: {uploadedFile} (application/pdf)
                   </AlertDescription>
                 </Alert>
-                <Button 
-                  className="w-full bg-destructive hover:bg-destructive/90"
-                  onClick={() => setCurrentStep("requirements")}
-                >
-                  🔍 Extract Requirements
-                </Button>
+                {requirementCount > 0 ? (
+                  <Button 
+                    className="w-full bg-green-600 hover:bg-green-700"
+                    onClick={() => setCurrentStep("requirements")}
+                  >
+                    ✅ View {requirementCount} Extracted Requirements
+                  </Button>
+                ) : (
+                  <Button 
+                    className="w-full bg-destructive hover:bg-destructive/90"
+                    onClick={() => extractMutation.mutate()}
+                    disabled={extractMutation.isPending}
+                  >
+                    🔍 Extract Requirements
+                  </Button>
+                )}
               </>
             ) : null}
           </div>
