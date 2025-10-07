@@ -61,25 +61,21 @@ const Index = () => {
               </section>
             )}
 
-            {currentStep === "upload" && (
-              <>
-                <section>
-                  <h2 className="text-3xl font-bold mb-2">Direct Query</h2>
-                  <p className="text-muted-foreground mb-6">
-                    Or ask specific questions and get instant AI-generated responses
-                  </p>
-                  <ChatInterface />
-                </section>
+            <section>
+              <h2 className="text-3xl font-bold mb-2">Direct Query</h2>
+              <p className="text-muted-foreground mb-6">
+                Or ask specific questions and get instant AI-generated responses
+              </p>
+              <ChatInterface />
+            </section>
 
-                <section>
-                  <h2 className="text-3xl font-bold mb-2">Response Dashboard</h2>
-                  <p className="text-muted-foreground mb-6">
-                    Track progress and review generated responses
-                  </p>
-                  <ResponseDashboard />
-                </section>
-              </>
-            )}
+            <section>
+              <h2 className="text-3xl font-bold mb-2">Response Dashboard</h2>
+              <p className="text-muted-foreground mb-6">
+                Track progress and review generated responses
+              </p>
+              <ResponseDashboard />
+            </section>
           </div>
         )}
 
