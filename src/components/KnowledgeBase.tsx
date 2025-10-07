@@ -46,7 +46,7 @@ export const KnowledgeBase = () => {
     formData.append('file', uploadedFile);
 
     try {
-      const response = await fetch('http://localhost:8001/api/index-requirements', {
+      const response = await fetch('http://localhost:8001/api/index-responses', {
         method: 'POST',
         body: formData,
       });
@@ -59,7 +59,7 @@ export const KnowledgeBase = () => {
       
       toast({
         title: "✅ Success!",
-        description: `Successfully indexed ${data.count || 'all'} requirements from the document`,
+        description: `Successfully indexed ${data.data?.indexing_results?.documents_added || 'all'} RFP response pairs from the document`,
       });
       
       setUploadedFile(null);
@@ -115,10 +115,10 @@ export const KnowledgeBase = () => {
             <div>
               <CardTitle className="flex items-center gap-2">
                 <Database className="h-5 w-5" />
-                Upload Requirements Document
+                Upload RFP Response Document
               </CardTitle>
               <CardDescription>
-                Upload Excel files containing requirements to index in the knowledge base
+                Upload Excel files containing RFP response pairs (requirements + responses) to index in the knowledge base
               </CardDescription>
             </div>
             <Button 
@@ -174,7 +174,7 @@ export const KnowledgeBase = () => {
                   ) : (
                     <>
                       <Database className="h-4 w-4" />
-                      🚀 Process & Index Requirements
+                      🚀 Process & Index RFP Responses
                     </>
                   )}
                 </Button>
@@ -183,9 +183,9 @@ export const KnowledgeBase = () => {
           ) : (
             <div className="border-2 border-dashed rounded-lg p-8 text-center">
               <Database className="h-12 w-12 mx-auto mb-4 text-muted-foreground" />
-              <p className="text-lg font-medium mb-2">Upload Requirements Document</p>
+              <p className="text-lg font-medium mb-2">Upload RFP Response Document</p>
               <p className="text-sm text-muted-foreground mb-4">
-                Upload Excel files (.xlsx) containing requirements to be indexed
+                Upload Excel files (.xlsx) containing RFP response pairs (requirements + responses) to be indexed
               </p>
               <Badge variant="secondary">Supports .xlsx files</Badge>
             </div>
