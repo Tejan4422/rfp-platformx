@@ -45,7 +45,7 @@ export const DocumentUpload = () => {
     setIsDragging(false);
     const file = e.dataTransfer.files[0];
     if (file) {
-      handleFileSelect(file);
+      handleFileUpload(file);
     }
   };
 
@@ -68,23 +68,21 @@ export const DocumentUpload = () => {
       setSessionId(sessionIdValue);
       setCurrentSessionId(sessionIdValue);
       
-      // Convert requirements array to the expected format
-      const formattedRequirements = data.requirements?.map((req: string, index: number) => ({
-        id: `req-${index}`,
-        text: req,
-        original_text: req
-      })) || [];
-      
-      setRequirements(formattedRequirements);
-      setRequirementCount(data.requirements?.length || 0);
-      
       toast({
         title: "Upload successful",
-        description: `Extracted ${data.requirements?.length || 0} requirements from ${uploadedFile?.name || "your file"}`,
+        description: `File uploaded successfully. Ready to extract requirements.`,
       });
       
-      // If requirements were extracted successfully, go to requirements step
+      // If requirements were included in the upload response, process them
       if (data.requirements && data.requirements.length > 0) {
+        const formattedRequirements = data.requirements.map((req: string, index: number) => ({
+          id: `req-${index}`,
+          text: req,
+          original_text: req
+        }));
+        
+        setRequirements(formattedRequirements);
+        setRequirementCount(data.requirements.length);
         setCurrentStep("requirements");
       }
     },
@@ -136,7 +134,7 @@ export const DocumentUpload = () => {
     },
   });
 
-  const handleFileSelect = (file: File) => {
+  const handleFileUpload = (file: File) => {
     setUploadedFile(file);
   };
 
@@ -200,7 +198,7 @@ export const DocumentUpload = () => {
             type="file"
             className="hidden"
             accept=".pdf,.docx,.xlsx,.xls"
-            onChange={(e) => e.target.files?.[0] && handleFileSelect(e.target.files[0])}
+            onChange={(e) => e.target.files?.[0] && handleFileUpload(e.target.files[0])}
           />
         </div>
 
@@ -331,14 +329,22 @@ export const DocumentUpload = () => {
                 ) : (
                   <Button 
                     className="w-full bg-destructive hover:bg-destructive/90"
-                    onClick={handleProcessRFP}
-                    disabled={uploadMutation.isPending}
+                    onClick={() => extractMutation.mutate()}
+                    disabled={extractMutation.isPending}
                   >
-                    � Process RFP
+                    🔍 Extract Requirements
                   </Button>
                 )}
               </>
-            ) : null}
+            ) : (
+              <Button 
+                className="w-full bg-destructive hover:bg-destructive/90"
+                onClick={handleProcessRFP}
+                disabled={uploadMutation.isPending}
+              >
+                🚀 Process RFP
+              </Button>
+            )}
           </div>
         )}
       </div>
