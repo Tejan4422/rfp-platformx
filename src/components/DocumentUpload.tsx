@@ -149,74 +149,6 @@ export const DocumentUpload = () => {
           />
         </div>
 
-        {/* Metadata Fields - Always Visible */}
-        <div className="space-y-4 p-4 bg-card/30 rounded-lg border">
-          <h3 className="text-sm font-semibold">RFP Information</h3>
-          
-          <div className="grid gap-4 md:grid-cols-2">
-            <div className="space-y-2">
-              <Label htmlFor="deadline">RFP Deadline *</Label>
-              <Popover>
-                <PopoverTrigger asChild>
-                  <Button
-                    variant="outline"
-                    className={cn(
-                      "w-full justify-start text-left font-normal",
-                      !deadline && "text-muted-foreground"
-                    )}
-                  >
-                    <CalendarIcon className="mr-2 h-4 w-4" />
-                    {deadline ? format(deadline, "PPP") : <span>Pick a date</span>}
-                  </Button>
-                </PopoverTrigger>
-                <PopoverContent className="w-auto p-0" align="start">
-                  <Calendar
-                    mode="single"
-                    selected={deadline}
-                    onSelect={setDeadline}
-                    initialFocus
-                    className="pointer-events-auto"
-                  />
-                </PopoverContent>
-              </Popover>
-            </div>
-
-            <div className="space-y-2">
-              <Label htmlFor="clientName">Client Name *</Label>
-              <Input
-                id="clientName"
-                placeholder="Enter client name"
-                value={clientName}
-                onChange={(e) => setClientName(e.target.value)}
-              />
-            </div>
-
-            <div className="space-y-2">
-              <Label htmlFor="priority">Expected Value / Priority *</Label>
-              <Select value={priority} onValueChange={setPriority}>
-                <SelectTrigger id="priority">
-                  <SelectValue placeholder="Select priority" />
-                </SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="high">High</SelectItem>
-                  <SelectItem value="medium">Medium</SelectItem>
-                  <SelectItem value="low">Low</SelectItem>
-                </SelectContent>
-              </Select>
-            </div>
-
-            <div className="space-y-2">
-              <Label htmlFor="internalOwner">Internal Owner / Team (Optional)</Label>
-              <Input
-                id="internalOwner"
-                placeholder="Enter owner or team"
-                value={internalOwner}
-                onChange={(e) => setInternalOwner(e.target.value)}
-              />
-            </div>
-          </div>
-        </div>
-
         {uploadedFile && (
           <div className="space-y-3">
             <div className="flex items-center justify-between p-3 bg-card rounded-lg border">
@@ -232,6 +164,74 @@ export const DocumentUpload = () => {
               </Button>
             </div>
 
+            {/* Metadata Fields */}
+            <div className="space-y-4 p-4 bg-card/30 rounded-lg border">
+              <h3 className="text-sm font-semibold">RFP Information</h3>
+              
+              <div className="grid gap-4 md:grid-cols-2">
+                <div className="space-y-2">
+                  <Label htmlFor="deadline">RFP Deadline</Label>
+                  <Popover>
+                    <PopoverTrigger asChild>
+                      <Button
+                        variant="outline"
+                        className={cn(
+                          "w-full justify-start text-left font-normal",
+                          !deadline && "text-muted-foreground"
+                        )}
+                      >
+                        <CalendarIcon className="mr-2 h-4 w-4" />
+                        {deadline ? format(deadline, "PPP") : <span>Pick a date</span>}
+                      </Button>
+                    </PopoverTrigger>
+                    <PopoverContent className="w-auto p-0" align="start">
+                      <Calendar
+                        mode="single"
+                        selected={deadline}
+                        onSelect={setDeadline}
+                        initialFocus
+                        className="pointer-events-auto"
+                      />
+                    </PopoverContent>
+                  </Popover>
+                </div>
+
+                <div className="space-y-2">
+                  <Label htmlFor="clientName">Client Name</Label>
+                  <Input
+                    id="clientName"
+                    placeholder="Enter client name"
+                    value={clientName}
+                    onChange={(e) => setClientName(e.target.value)}
+                  />
+                </div>
+
+                <div className="space-y-2">
+                  <Label htmlFor="priority">Expected Value / Priority</Label>
+                  <Select value={priority} onValueChange={setPriority}>
+                    <SelectTrigger id="priority">
+                      <SelectValue placeholder="Select priority" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="high">High</SelectItem>
+                      <SelectItem value="medium">Medium</SelectItem>
+                      <SelectItem value="low">Low</SelectItem>
+                    </SelectContent>
+                  </Select>
+                </div>
+
+                <div className="space-y-2">
+                  <Label htmlFor="internalOwner">Internal Owner / Team (Optional)</Label>
+                  <Input
+                    id="internalOwner"
+                    placeholder="Enter owner or team"
+                    value={internalOwner}
+                    onChange={(e) => setInternalOwner(e.target.value)}
+                  />
+                </div>
+              </div>
+            </div>
+
             <details className="group">
               <summary className="flex items-center gap-2 cursor-pointer p-3 bg-card/50 rounded-lg border hover:bg-card transition-colors">
                 <span className="group-open:rotate-90 transition-transform">▶</span>
@@ -244,34 +244,33 @@ export const DocumentUpload = () => {
               </div>
             </details>
 
-            {uploadMutation.isPending && (
+            {uploadMutation.isPending ? (
               <Alert className="bg-yellow-950/50 border-yellow-900">
                 <AlertCircle className="h-4 w-4" />
                 <AlertDescription>
                   Processing {uploadedFile.name}... Extracting requirements.
                 </AlertDescription>
               </Alert>
-            )}
-            
-            {uploadMutation.isSuccess && (
-              <Alert className="bg-blue-950/50 border-blue-900">
-                <CheckCircle2 className="h-4 w-4" />
-                <AlertDescription>
-                  🔗 Uploaded file: {uploadedFile.name} (application/pdf)
-                </AlertDescription>
-              </Alert>
+            ) : uploadMutation.isSuccess ? (
+              <>
+                <Alert className="bg-blue-950/50 border-blue-900">
+                  <CheckCircle2 className="h-4 w-4" />
+                  <AlertDescription>
+                    🔗 Uploaded file: {uploadedFile.name} (application/pdf)
+                  </AlertDescription>
+                </Alert>
+              </>
+            ) : (
+              <Button 
+                className="w-full bg-destructive hover:bg-destructive/90"
+                onClick={handleProcessRFP}
+                disabled={uploadMutation.isPending}
+              >
+                🚀 Process RFP
+              </Button>
             )}
           </div>
         )}
-
-        {/* Process RFP Button - Always Visible */}
-        <Button 
-          className="w-full bg-destructive hover:bg-destructive/90"
-          onClick={handleProcessRFP}
-          disabled={!uploadedFile || !deadline || !clientName || !priority || uploadMutation.isPending}
-        >
-          🚀 Process RFP
-        </Button>
       </div>
     </div>
   );
