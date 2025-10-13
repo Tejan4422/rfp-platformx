@@ -33,7 +33,23 @@ export const ChatInterface = () => {
     "What are your company's core competencies?",
     "Describe your implementation methodology",
     "What's your approach to security and compliance?",
-    "Tell me about your team's experience"
+    "Tell me about your team's experience",
+    "What is your project management approach?",
+    "Describe your quality assurance process",
+    "What are your service level agreements?",
+    "How do you handle data privacy and GDPR compliance?",
+    "What is your disaster recovery plan?",
+    "Describe your technical support capabilities",
+    "What are your pricing models and payment terms?",
+    "How do you ensure scalability and performance?",
+    "What is your change management process?",
+    "Describe your training and onboarding approach",
+    "What certifications does your company hold?",
+    "How do you handle system integration?",
+    "What is your reporting and analytics capability?",
+    "Describe your business continuity plan",
+    "What are your key differentiators?",
+    "How do you measure success and ROI?"
   ];
 
   const handleSend = async () => {
@@ -195,18 +211,20 @@ export const ChatInterface = () => {
           </CardDescription>
         </CardHeader>
         <CardContent>
-          <div className="space-y-2">
-            {quickQuestions.map((question, idx) => (
-              <Button
-                key={idx}
-                variant="outline"
-                className="w-full justify-start text-left h-auto py-3"
-                onClick={() => setInput(question)}
-              >
-                {question}
-              </Button>
-            ))}
-          </div>
+          <ScrollArea className="h-[400px]">
+            <div className="space-y-2 animate-scroll-vertical hover:[animation-play-state:paused]">
+              {quickQuestions.map((question, idx) => (
+                <Button
+                  key={idx}
+                  variant="outline"
+                  className="w-full justify-start text-left h-auto py-3"
+                  onClick={() => setInput(question)}
+                >
+                  {question}
+                </Button>
+              ))}
+            </div>
+          </ScrollArea>
         </CardContent>
       </Card>
     </div>
