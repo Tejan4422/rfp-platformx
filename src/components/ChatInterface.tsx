@@ -138,21 +138,25 @@ export const ChatInterface = () => {
         </CardContent>
       </Card>
 
-      <Card>
-        <CardHeader>
-          <CardTitle>Quick Questions</CardTitle>
-          <CardDescription>
-            Common RFP questions to get started
+      <Card className="gradient-primary border-0 shadow-glow">
+        <CardHeader className="relative">
+          <div className="absolute inset-0 bg-background/80 backdrop-blur-sm rounded-t-lg"></div>
+          <CardTitle className="relative flex items-center gap-2">
+            <span className="text-primary-foreground">✨ Quick Questions</span>
+          </CardTitle>
+          <CardDescription className="relative text-primary-foreground/90">
+            AI-powered RFP question suggestions
           </CardDescription>
         </CardHeader>
-        <CardContent>
-          <div className="h-[400px] overflow-hidden">
-            <div className="space-y-2 animate-scroll-vertical hover:[animation-play-state:paused]">
+        <CardContent className="relative">
+          <div className="absolute inset-0 bg-background/90 backdrop-blur-sm rounded-b-lg"></div>
+          <div className="relative h-[400px] overflow-hidden rounded-lg border border-primary/20 bg-gradient-to-b from-primary/5 to-transparent">
+            <div className="space-y-2 p-2 animate-scroll-vertical hover:[animation-play-state:paused]">
               {[...quickQuestions, ...quickQuestions].map((question, idx) => (
                 <Button
                   key={idx}
                   variant="outline"
-                  className="w-full justify-start text-left h-auto py-3"
+                  className="w-full justify-start text-left h-auto py-3 bg-card/80 backdrop-blur-sm hover:bg-primary/10 hover:border-primary/50 transition-all hover:shadow-md"
                   onClick={() => setInput(question)}
                 >
                   {question}
