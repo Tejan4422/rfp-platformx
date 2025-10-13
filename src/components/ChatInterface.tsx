@@ -203,13 +203,14 @@ export const ChatInterface = () => {
         </CardContent>
       </Card>
 
-      <Card className="gradient-primary border-0 shadow-glow">
+      <Card className="relative border-0 shadow-glow overflow-hidden">
+        <div className="absolute inset-0 bg-gradient-to-r from-blue-500 via-purple-500 to-pink-500 opacity-90"></div>
         <CardHeader className="relative">
           <div className="absolute inset-0 bg-background/80 backdrop-blur-sm rounded-t-lg"></div>
           <CardTitle className="relative flex items-center gap-2">
-            <span className="text-primary-foreground">✨ Quick Questions</span>
+            <span className="text-foreground">✨ Quick Questions</span>
           </CardTitle>
-          <CardDescription className="relative text-primary-foreground/90">
+          <CardDescription className="relative text-foreground/70">
             AI-powered RFP question suggestions
           </CardDescription>
         </CardHeader>
