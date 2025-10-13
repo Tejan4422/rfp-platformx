@@ -13,6 +13,7 @@ interface Message {
   role: "user" | "assistant";
   content: string;
   quality?: "excellent" | "good" | "needs-review";
+  category?: string;
   timestamp?: string;
   loading?: boolean;
 }
@@ -96,6 +97,7 @@ export const ChatInterface = () => {
           role: "assistant",
           content: data.data.answer,
           quality: data.data.quality_score >= 90 ? "excellent" : data.data.quality_score >= 75 ? "good" : "needs-review",
+          category: data.data.category,
           timestamp: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })
         };
 
@@ -127,6 +129,30 @@ export const ChatInterface = () => {
     }
   };
 
+  const getCategoryColor = (category: string) => {
+    switch (category?.toLowerCase()) {
+      case 'tech':
+        return "bg-blue-500/10 text-blue-400 border-blue-500/20";
+      case 'security':
+        return "bg-red-500/10 text-red-400 border-red-500/20";
+      case 'compliance':
+        return "bg-purple-500/10 text-purple-400 border-purple-500/20";
+      case 'functional':
+        return "bg-green-500/10 text-green-400 border-green-500/20";
+      case 'non-functional':
+        return "bg-yellow-500/10 text-yellow-400 border-yellow-500/20";
+      case 'bi tool':
+        return "bg-orange-500/10 text-orange-400 border-orange-500/20";
+      default:
+        return "bg-gray-500/10 text-gray-400 border-gray-500/20";
+    }
+  };
+
+  const getCategoryIcon = (category: string) => {
+    // Removed emoji icons - return empty string
+    return "";
+  };
+
   const getQualityBadge = (quality?: string) => {
     if (!quality) return null;
     
@@ -140,6 +166,16 @@ export const ChatInterface = () => {
       <Badge variant={variants[quality as keyof typeof variants] || "secondary"} className="ml-2">
         {quality === "excellent" && <CheckCircle className="h-3 w-3 mr-1" />}
         {quality}
+      </Badge>
+    );
+  };
+
+  const getCategoryBadge = (category?: string) => {
+    if (!category) return null;
+    
+    return (
+      <Badge className={`${getCategoryColor(category)} text-xs ml-1`}>
+        {category}
       </Badge>
     );
   };
@@ -180,6 +216,7 @@ export const ChatInterface = () => {
                         <Clock className="h-3 w-3" />
                         {msg.timestamp}
                       </span>
+                      {getCategoryBadge(msg.category)}
                       {getQualityBadge(msg.quality)}
                     </div>
                   </div>

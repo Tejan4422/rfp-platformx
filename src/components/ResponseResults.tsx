@@ -28,6 +28,30 @@ export const ResponseResults = () => {
     return "Needs Review";
   };
 
+  const getCategoryColor = (category: string) => {
+    switch (category?.toLowerCase()) {
+      case 'tech':
+        return "bg-blue-500/10 text-blue-400 border-blue-500/20";
+      case 'security':
+        return "bg-red-500/10 text-red-400 border-red-500/20";
+      case 'compliance':
+        return "bg-purple-500/10 text-purple-400 border-purple-500/20";
+      case 'functional':
+        return "bg-green-500/10 text-green-400 border-green-500/20";
+      case 'non-functional':
+        return "bg-yellow-500/10 text-yellow-400 border-yellow-500/20";
+      case 'bi tool':
+        return "bg-orange-500/10 text-orange-400 border-orange-500/20";
+      default:
+        return "bg-gray-500/10 text-gray-400 border-gray-500/20";
+    }
+  };
+
+  const getCategoryIcon = (category: string) => {
+    // Removed emoji icons - return empty string
+    return "";
+  };
+
   const avgQuality = responses.length > 0
     ? Math.round(responses.reduce((sum, r) => sum + r.quality_score, 0) / responses.length)
     : 0;
@@ -176,15 +200,29 @@ export const ResponseResults = () => {
                         <Badge variant="outline">{index + 1}</Badge>
                         <span className="line-clamp-1 flex-1 text-sm">{response.requirement}</span>
                       </div>
-                      <Badge className={getQualityColor(response.quality_score)}>
-                        {response.quality_score}%
-                      </Badge>
+                      <div className="flex items-center gap-2">
+                        {response.category && (
+                          <Badge className={`${getCategoryColor(response.category)} text-xs`}>
+                            {response.category}
+                          </Badge>
+                        )}
+                        <Badge className={getQualityColor(response.quality_score)}>
+                          {response.quality_score}%
+                        </Badge>
+                      </div>
                     </div>
                   </AccordionTrigger>
                   <AccordionContent>
                     <div className="space-y-4 pt-4 pb-3">
                       <div>
-                        <h4 className="text-sm font-semibold mb-2">Question:</h4>
+                        <h4 className="text-sm font-semibold mb-2 flex items-center gap-2">
+                          Question:
+                          {response.category && (
+                            <Badge className={`${getCategoryColor(response.category)} text-xs`}>
+                              {response.category}
+                            </Badge>
+                          )}
+                        </h4>
                         <p className="text-sm p-3 bg-muted/30 rounded-md border-l-2 border-primary/50">
                           {response.requirement}
                         </p>

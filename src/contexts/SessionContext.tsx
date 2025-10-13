@@ -11,6 +11,7 @@ export interface Response {
   requirement: string;
   response: string;
   quality_score: number;
+  category?: string;
   context_sources?: Array<{
     content: string;
     similarity: number;

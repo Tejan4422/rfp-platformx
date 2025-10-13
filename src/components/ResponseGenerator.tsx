@@ -51,6 +51,7 @@ export const ResponseGenerator = () => {
         response: response.answer || "No response generated",
         quality_score: response.quality_score || 0,
         quality_status: response.quality_status,
+        category: response.category || "Unknown",
         context_sources: response.context || []
       })) || [];
       
