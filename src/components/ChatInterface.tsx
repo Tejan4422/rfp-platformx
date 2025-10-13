@@ -211,9 +211,9 @@ export const ChatInterface = () => {
           </CardDescription>
         </CardHeader>
         <CardContent>
-          <ScrollArea className="h-[400px]">
+          <div className="h-[400px] overflow-hidden">
             <div className="space-y-2 animate-scroll-vertical hover:[animation-play-state:paused]">
-              {quickQuestions.map((question, idx) => (
+              {[...quickQuestions, ...quickQuestions].map((question, idx) => (
                 <Button
                   key={idx}
                   variant="outline"
@@ -224,7 +224,7 @@ export const ChatInterface = () => {
                 </Button>
               ))}
             </div>
-          </ScrollArea>
+          </div>
         </CardContent>
       </Card>
     </div>
