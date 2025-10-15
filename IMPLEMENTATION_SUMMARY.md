@@ -12,6 +12,7 @@ Successfully created a new **RFP Processing View** feature that displays extract
   - `#` - Row number
   - `RFP Question` - Extracted requirements (editable)
   - `RFP Answer` - Generated responses (editable) 
+  - `Category` - Requirement category with color-coded badges
   - `Status` - Processing status badges
   - `Quality` - Quality scores with percentages
   - `Actions` - Quick action buttons
@@ -30,10 +31,28 @@ Successfully created a new **RFP Processing View** feature that displays extract
 - ✅ **Excel-like Borders**: Clean borders between columns and rows
 - ✅ **Hover Effects**: Row highlighting on hover
 - ✅ **Quality Badges**: Color-coded quality indicators (High, Medium, Low)
+- ✅ **Category Badges**: Color-coded requirement categories (Technical, Functional, Security, Performance, etc.)
 - ✅ **Status Badges**: Processing status with appropriate colors
 - ✅ **Responsive Design**: Adapts to different screen sizes
 
+### Category Classification
+- ✅ **Automatic Categorization**: Requirements are classified by the RAG system
+- ✅ **Color-coded Categories**:
+  - 🔵 **Technical** - Technical implementation requirements
+  - 🟣 **Functional** - Functional/business requirements  
+  - 🔴 **Security** - Security and compliance requirements
+  - 🟢 **Performance** - Performance and scalability requirements
+  - 🟠 **Integration** - Integration and API requirements
+  - 🟡 **Compliance** - Regulatory and compliance requirements
+  - 🩷 **Business** - Business logic and workflow requirements
+  - ⚫ **Infrastructure** - Infrastructure and deployment requirements
+  - 🩵 **Data** - Data management and storage requirements
+  - 🟦 **UI/UX** - User interface and experience requirements
+
 ### 5. **Configuration Panel**
+- ✅ **Excel Export**: Category column included in XLSX export files
+- ✅ **RAG Integration**: Categories are extracted from the RAG classification system
+- ✅ **Consistent Display**: Same categories shown in UI and exported files
 - ✅ **AI Model Selection**: Choose between Llama3, Llama2, Mistral
 - ✅ **Context Chunks**: Slider to adjust Top-K retrieval
 - ✅ **Process All Button**: Start processing all requirements with one click
