@@ -235,6 +235,24 @@ export const RFPProcessingView = () => {
     return <Badge className="bg-red-500/20 text-red-300">Very Low</Badge>;
   };
 
+  const getCategoryBadge = (category: string) => {
+    const categoryColors: { [key: string]: string } = {
+      'Technical': 'bg-blue-500/20 text-blue-300',
+      'Functional': 'bg-purple-500/20 text-purple-300',
+      'Security': 'bg-red-500/20 text-red-300',
+      'Performance': 'bg-green-500/20 text-green-300',
+      'Integration': 'bg-orange-500/20 text-orange-300',
+      'Compliance': 'bg-yellow-500/20 text-yellow-300',
+      'Business': 'bg-pink-500/20 text-pink-300',
+      'Infrastructure': 'bg-gray-500/20 text-gray-300',
+      'Data': 'bg-cyan-500/20 text-cyan-300',
+      'UI/UX': 'bg-indigo-500/20 text-indigo-300'
+    };
+    
+    const colorClass = categoryColors[category] || 'bg-gray-500/20 text-gray-300';
+    return <Badge variant="outline" className={`text-xs ${colorClass} border-current`}>{category}</Badge>;
+  };
+
   if (requirements.length === 0) {
     return (
       <div className="space-y-6 animate-fade-in">
@@ -384,11 +402,12 @@ export const RFPProcessingView = () => {
                 <TableHeader className="sticky top-0 z-10">
                   <TableRow className="bg-muted/80 backdrop-blur">
                     <TableHead className="w-16 text-center font-semibold border-r border-border">#</TableHead>
-                    <TableHead className="w-2/5 font-semibold border-r border-border">RFP Question</TableHead>
-                    <TableHead className="w-2/5 font-semibold border-r border-border">RFP Answer</TableHead>
-                    <TableHead className="w-24 text-center font-semibold border-r border-border">Status</TableHead>
-                    <TableHead className="w-24 text-center font-semibold border-r border-border">Quality</TableHead>
-                    <TableHead className="w-24 text-center font-semibold">Actions</TableHead>
+                    <TableHead className="w-1/3 font-semibold border-r border-border">RFP Question</TableHead>
+                    <TableHead className="w-1/3 font-semibold border-r border-border">RFP Answer</TableHead>
+                    <TableHead className="w-24 text-center font-semibold border-r border-border">Category</TableHead>
+                    <TableHead className="w-20 text-center font-semibold border-r border-border">Status</TableHead>
+                    <TableHead className="w-20 text-center font-semibold border-r border-border">Quality</TableHead>
+                    <TableHead className="w-20 text-center font-semibold">Actions</TableHead>
                   </TableRow>
                 </TableHeader>
               <TableBody>
@@ -495,6 +514,15 @@ export const RFPProcessingView = () => {
                               </Button>
                             )}
                           </div>
+                        )}
+                      </TableCell>
+
+                      {/* Category Column */}
+                      <TableCell className="align-top text-center border-r border-border/50 p-4">
+                        {response?.category ? (
+                          getCategoryBadge(response.category)
+                        ) : (
+                          <span className="text-xs text-muted-foreground">—</span>
                         )}
                       </TableCell>
 
