@@ -35,20 +35,6 @@ Successfully created a new **RFP Processing View** feature that displays extract
 - ✅ **Status Badges**: Processing status with appropriate colors
 - ✅ **Responsive Design**: Adapts to different screen sizes
 
-### Category Classification
-- ✅ **Automatic Categorization**: Requirements are classified by the RAG system
-- ✅ **Color-coded Categories**:
-  - 🔵 **Technical** - Technical implementation requirements
-  - 🟣 **Functional** - Functional/business requirements  
-  - 🔴 **Security** - Security and compliance requirements
-  - 🟢 **Performance** - Performance and scalability requirements
-  - 🟠 **Integration** - Integration and API requirements
-  - 🟡 **Compliance** - Regulatory and compliance requirements
-  - 🩷 **Business** - Business logic and workflow requirements
-  - ⚫ **Infrastructure** - Infrastructure and deployment requirements
-  - 🩵 **Data** - Data management and storage requirements
-  - 🟦 **UI/UX** - User interface and experience requirements
-
 ### 5. **Configuration Panel**
 - ✅ **Excel Export**: Category column included in XLSX export files
 - ✅ **RAG Integration**: Categories are extracted from the RAG classification system
