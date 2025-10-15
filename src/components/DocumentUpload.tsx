@@ -320,12 +320,14 @@ export const DocumentUpload = () => {
                   </AlertDescription>
                 </Alert>
                 {requirementCount > 0 ? (
-                  <Button 
-                    className="w-full bg-green-600 hover:bg-green-700"
-                    onClick={() => setCurrentStep("requirements")}
-                  >
-                    ✅ View {requirementCount} Extracted Requirements
-                  </Button>
+                  <div className="space-y-2">
+                    <Button 
+                      className="w-full bg-green-600 hover:bg-green-700"
+                      onClick={() => setCurrentStep("requirements")}
+                    >
+                      ✅ View {requirementCount} Extracted Requirements
+                    </Button>
+                  </div>
                 ) : (
                   <Button 
                     className="w-full bg-destructive hover:bg-destructive/90"

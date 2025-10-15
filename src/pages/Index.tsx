@@ -9,6 +9,7 @@ import { Analytics } from "@/components/Analytics";
 import { RequirementsManager } from "@/components/RequirementsManager";
 import { ResponseGenerator } from "@/components/ResponseGenerator";
 import { ResponseResults } from "@/components/ResponseResults";
+import { RFPProcessingView } from "@/components/RFPProcessingView";
 import { useSession } from "@/contexts/SessionContext";
 
 const Index = () => {
@@ -76,6 +77,12 @@ const Index = () => {
               </p>
               <ResponseDashboard />
             </section>
+          </div>
+        )}
+
+        {activeTab === "processing" && (
+          <div>
+            <RFPProcessingView />
           </div>
         )}
 

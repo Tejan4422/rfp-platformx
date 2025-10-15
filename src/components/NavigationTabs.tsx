@@ -1,5 +1,5 @@
 import { Tabs, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { FileText, Database, BarChart3 } from "lucide-react";
+import { FileText, Database, BarChart3, Zap } from "lucide-react";
 
 interface NavigationTabsProps {
   activeTab: string;
@@ -18,6 +18,13 @@ export const NavigationTabs = ({ activeTab, onTabChange }: NavigationTabsProps) 
             >
               <FileText className="h-4 w-4" />
               Generate Responses
+            </TabsTrigger>
+            <TabsTrigger 
+              value="processing" 
+              className="flex items-center gap-2 data-[state=active]:bg-primary data-[state=active]:text-primary-foreground"
+            >
+              <Zap className="h-4 w-4" />
+              RFP Processing
             </TabsTrigger>
             <TabsTrigger 
               value="knowledge" 
