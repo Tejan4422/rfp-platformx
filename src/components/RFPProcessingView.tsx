@@ -6,8 +6,6 @@ import { Progress } from "@/components/ui/progress";
 import { Badge } from "@/components/ui/badge";
 import { Slider } from "@/components/ui/slider";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { ScrollArea } from "@/components/ui/scroll-area";
-import { Separator } from "@/components/ui/separator";
 import { 
   Play, 
   Pause, 
@@ -22,6 +20,7 @@ import {
   Download,
   RefreshCw
 } from "lucide-react";
+import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { useSession, Requirement, Response } from "@/contexts/SessionContext";
 import { useToast } from "@/hooks/use-toast";
 import { useMutation } from "@tanstack/react-query";
@@ -378,125 +377,167 @@ export const RFPProcessingView = () => {
             </div>
           </CardTitle>
         </CardHeader>
-        <CardContent>
-          <ScrollArea className="h-[600px]">
-            <div className="space-y-4">
-              {requirements.map((req, index) => {
-                const response = localResponses.find(r => r.requirement_id === req.id);
-                const isEditingReq = editingRequirement === req.id;
-                const isEditingResp = editingResponse === req.id;
-                
-                return (
-                  <div key={req.id} className="border rounded-lg p-4 space-y-4 bg-card/30">
-                    {/* Requirement Row */}
-                    <div className="space-y-2">
-                      <div className="flex items-center justify-between">
-                        <h4 className="font-medium text-sm">RFP Question {index + 1}</h4>
-                        <div className="flex items-center gap-2">
-                          {getStatusBadge(response || {} as Response)}
-                          <Button
-                            variant="ghost"
-                            size="sm"
-                            onClick={() => handleEditRequirement(req)}
-                            disabled={isEditingReq || processingStatus.isRunning}
-                          >
-                            <Edit3 className="h-3 w-3" />
-                          </Button>
-                        </div>
-                      </div>
+        <CardContent className="p-0">
+          <div className="border rounded-lg overflow-hidden">
+            <div className="max-h-[600px] overflow-auto">
+              <Table>
+                <TableHeader className="sticky top-0 z-10">
+                  <TableRow className="bg-muted/80 backdrop-blur">
+                    <TableHead className="w-16 text-center font-semibold border-r border-border">#</TableHead>
+                    <TableHead className="w-2/5 font-semibold border-r border-border">RFP Question</TableHead>
+                    <TableHead className="w-2/5 font-semibold border-r border-border">RFP Answer</TableHead>
+                    <TableHead className="w-24 text-center font-semibold border-r border-border">Status</TableHead>
+                    <TableHead className="w-24 text-center font-semibold border-r border-border">Quality</TableHead>
+                    <TableHead className="w-24 text-center font-semibold">Actions</TableHead>
+                  </TableRow>
+                </TableHeader>
+              <TableBody>
+                {requirements.map((req, index) => {
+                  const response = localResponses.find(r => r.requirement_id === req.id);
+                  const isEditingReq = editingRequirement === req.id;
+                  const isEditingResp = editingResponse === req.id;
+                  
+                  return (
+                    <TableRow key={req.id} className="hover:bg-muted/30 border-b border-border/50">
+                      <TableCell className="font-medium text-center border-r border-border/50 bg-muted/10">
+                        {index + 1}
+                      </TableCell>
                       
-                      {isEditingReq ? (
-                        <div className="space-y-2">
-                          <Textarea
-                            value={editText}
-                            onChange={(e) => setEditText(e.target.value)}
-                            className="min-h-[80px] text-sm"
-                            autoFocus
-                          />
-                          <div className="flex gap-2">
-                            <Button size="sm" onClick={handleSaveRequirement}>
-                              <Save className="h-3 w-3 mr-1" />
-                              Save
-                            </Button>
-                            <Button size="sm" variant="outline" onClick={handleCancel}>
-                              <X className="h-3 w-3 mr-1" />
-                              Cancel
-                            </Button>
+                      {/* RFP Question Column */}
+                      <TableCell className="align-top border-r border-border/50 p-4 max-w-0">
+                        {isEditingReq ? (
+                          <div className="space-y-2">
+                            <Textarea
+                              value={editText}
+                              onChange={(e) => setEditText(e.target.value)}
+                              className="min-h-[100px] text-sm resize-none"
+                              autoFocus
+                            />
+                            <div className="flex gap-1">
+                              <Button size="sm" onClick={handleSaveRequirement}>
+                                <Save className="h-3 w-3 mr-1" />
+                                Save
+                              </Button>
+                              <Button size="sm" variant="outline" onClick={handleCancel}>
+                                <X className="h-3 w-3 mr-1" />
+                                Cancel
+                              </Button>
+                            </div>
                           </div>
-                        </div>
-                      ) : (
-                        <p className="text-sm text-muted-foreground leading-relaxed">
-                          {req.text}
-                        </p>
-                      )}
-                    </div>
-
-                    <Separator />
-
-                    {/* Response Row */}
-                    <div className="space-y-2">
-                      <div className="flex items-center justify-between">
-                        <h4 className="font-medium text-sm">RFP Answer</h4>
-                        <div className="flex items-center gap-2">
-                          {response?.quality_score !== undefined && response.quality_score > 0 && (
-                            getQualityBadge(response.quality_score)
-                          )}
-                          {response?.response && (
+                        ) : (
+                          <div className="space-y-2">
+                            <p className="text-sm leading-relaxed break-words whitespace-pre-wrap">
+                              {req.text}
+                            </p>
                             <Button
                               variant="ghost"
                               size="sm"
-                              onClick={() => handleEditResponse(response)}
-                              disabled={isEditingResp || processingStatus.isRunning}
+                              onClick={() => handleEditRequirement(req)}
+                              disabled={processingStatus.isRunning}
+                              className="h-6 text-xs opacity-60 hover:opacity-100"
                             >
-                              <Edit3 className="h-3 w-3" />
-                            </Button>
-                          )}
-                        </div>
-                      </div>
-                      
-                      {isEditingResp ? (
-                        <div className="space-y-2">
-                          <Textarea
-                            value={editText}
-                            onChange={(e) => setEditText(e.target.value)}
-                            className="min-h-[100px] text-sm"
-                            autoFocus
-                          />
-                          <div className="flex gap-2">
-                            <Button size="sm" onClick={handleSaveResponse}>
-                              <Save className="h-3 w-3 mr-1" />
-                              Save
-                            </Button>
-                            <Button size="sm" variant="outline" onClick={handleCancel}>
-                              <X className="h-3 w-3 mr-1" />
-                              Cancel
+                              <Edit3 className="h-3 w-3 mr-1" />
+                              Edit
                             </Button>
                           </div>
-                        </div>
-                      ) : (
-                        <div className="bg-muted/30 rounded-md p-3">
-                          {processingStatus.isRunning && (!response?.response || response.response === "") ? (
-                            <div className="flex items-center gap-2 text-sm text-muted-foreground">
-                              <Loader2 className="h-4 w-4 animate-spin" />
-                              Generating response...
+                        )}
+                      </TableCell>
+
+                      {/* RFP Answer Column */}
+                      <TableCell className="align-top border-r border-border/50 p-4 max-w-0">
+                        {isEditingResp ? (
+                          <div className="space-y-2">
+                            <Textarea
+                              value={editText}
+                              onChange={(e) => setEditText(e.target.value)}
+                              className="min-h-[100px] text-sm resize-none"
+                              autoFocus
+                            />
+                            <div className="flex gap-1">
+                              <Button size="sm" onClick={handleSaveResponse}>
+                                <Save className="h-3 w-3 mr-1" />
+                                Save
+                              </Button>
+                              <Button size="sm" variant="outline" onClick={handleCancel}>
+                                <X className="h-3 w-3 mr-1" />
+                                Cancel
+                              </Button>
                             </div>
-                          ) : response?.response ? (
-                            <p className="text-sm leading-relaxed">
-                              {response.response}
-                            </p>
-                          ) : (
-                            <p className="text-sm text-muted-foreground italic">
-                              Response will appear here after processing...
-                            </p>
+                          </div>
+                        ) : (
+                          <div className="space-y-2">
+                            <div className="bg-muted/20 rounded-md p-3 min-h-[60px] border border-border/30">
+                              {processingStatus.isRunning && (!response?.response || response.response === "") ? (
+                                <div className="flex items-center gap-2 text-sm text-muted-foreground">
+                                  <Loader2 className="h-4 w-4 animate-spin" />
+                                  Generating response...
+                                </div>
+                              ) : response?.response ? (
+                                <p className="text-sm leading-relaxed break-words whitespace-pre-wrap">
+                                  {response.response}
+                                </p>
+                              ) : (
+                                <p className="text-sm text-muted-foreground italic">
+                                  Response will appear here after processing...
+                                </p>
+                              )}
+                            </div>
+                            {response?.response && (
+                              <Button
+                                variant="ghost"
+                                size="sm"
+                                onClick={() => handleEditResponse(response)}
+                                disabled={processingStatus.isRunning}
+                                className="h-6 text-xs opacity-60 hover:opacity-100"
+                              >
+                                <Edit3 className="h-3 w-3 mr-1" />
+                                Edit
+                              </Button>
+                            )}
+                          </div>
+                        )}
+                      </TableCell>
+
+                      {/* Status Column */}
+                      <TableCell className="align-top text-center border-r border-border/50 p-4">
+                        {getStatusBadge(response || {} as Response)}
+                      </TableCell>
+
+                      {/* Quality Column */}
+                      <TableCell className="align-top text-center border-r border-border/50 p-4">
+                        {response?.quality_score !== undefined && response.quality_score > 0 ? (
+                          <div className="space-y-1">
+                            {getQualityBadge(response.quality_score)}
+                            <div className="text-xs text-muted-foreground font-mono">
+                              {response.quality_score}%
+                            </div>
+                          </div>
+                        ) : (
+                          <span className="text-xs text-muted-foreground">—</span>
+                        )}
+                      </TableCell>
+
+                      {/* Actions Column */}
+                      <TableCell className="align-top text-center p-4">
+                        <div className="flex flex-col gap-1">
+                          {response?.response && (
+                            <Button
+                              variant="outline"
+                              size="sm"
+                              className="h-6 text-xs"
+                            >
+                              View
+                            </Button>
                           )}
                         </div>
-                      )}
-                    </div>
-                  </div>
-                );
-              })}
+                      </TableCell>
+                    </TableRow>
+                  );
+                })}
+              </TableBody>
+            </Table>
             </div>
-          </ScrollArea>
+          </div>
         </CardContent>
       </Card>
     </div>
