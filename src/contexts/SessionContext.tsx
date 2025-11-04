@@ -12,6 +12,7 @@ export interface Response {
   response: string;
   quality_score: number;
   category?: string;
+  last_modified?: string;
   context_sources?: Array<{
     content: string;
     similarity: number;
