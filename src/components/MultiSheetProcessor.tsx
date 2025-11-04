@@ -5,6 +5,7 @@ import { Badge } from "@/components/ui/badge";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Progress } from "@/components/ui/progress";
 import { Slider } from "@/components/ui/slider";
+import { Textarea } from "@/components/ui/textarea";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { ScrollArea } from "@/components/ui/scroll-area";
@@ -18,7 +19,10 @@ import {
   Loader2,
   Eye,
   BarChart3,
-  FileText
+  FileText,
+  Edit,
+  Save,
+  X
 } from "lucide-react";
 import { useSession } from "@/contexts/SessionContext";
 import { useToast } from "@/hooks/use-toast";
@@ -60,6 +64,10 @@ export const MultiSheetProcessor = () => {
   const [processingProgress, setProcessingProgress] = useState(0);
   const [isProcessing, setIsProcessing] = useState(false);
   const [processingMode, setProcessingMode] = useState<"classification" | "rag">("rag");
+  
+  // Edit state
+  const [editingCell, setEditingCell] = useState<{sheetName: string, index: number} | null>(null);
+  const [editingText, setEditingText] = useState("");
   
   // RAG Configuration
   const [topK, setTopK] = useState(3);
@@ -202,6 +210,94 @@ export const MultiSheetProcessor = () => {
         variant: "destructive",
       });
     }
+  };
+
+  // Update multi-sheet response mutation
+  const updateMultiSheetResponseMutation = useMutation({
+    mutationFn: async ({ sheetName, responseIndex, newResponse }: { 
+      sheetName: string, 
+      responseIndex: number, 
+      newResponse: string 
+    }) => {
+      const response = await fetch(`${API_BASE_URL}/api/responses/update`, {
+        method: "PUT",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          session_id: sessionId,
+          requirement_index: responseIndex,
+          new_response: newResponse,
+          sheet_name: sheetName
+        })
+      });
+      
+      if (!response.ok) {
+        const errorData = await response.json().catch(() => ({}));
+        throw new Error(errorData.detail || 'Failed to update response');
+      }
+      
+      return response.json();
+    },
+    onSuccess: (data, variables) => {
+      // Update the mutation data directly since it's stored in the processMultiSheetMutation
+      if (processMultiSheetMutation.data) {
+        const currentData = processMultiSheetMutation.data;
+        const responses = currentData.responses || {};
+        
+        if (responses[variables.sheetName]) {
+          responses[variables.sheetName][variables.responseIndex] = {
+            ...responses[variables.sheetName][variables.responseIndex],
+            response: variables.newResponse,
+            last_modified: new Date().toISOString()
+          };
+          
+          // Trigger a re-render by updating the mutation data
+          processMultiSheetMutation.data = { ...currentData, responses };
+        }
+      }
+      
+      setEditingCell(null);
+      setEditingText("");
+      
+      toast({
+        title: "Response Updated",
+        description: `Response in ${variables.sheetName} has been updated successfully`,
+      });
+    },
+    onError: (error) => {
+      toast({
+        title: "Update Failed",
+        description: error instanceof Error ? error.message : "Unknown error occurred",
+        variant: "destructive",
+      });
+    },
+  });
+
+  // Edit handlers
+  const handleEditResponse = (sheetName: string, index: number, currentResponse: string) => {
+    setEditingCell({ sheetName, index });
+    setEditingText(currentResponse);
+  };
+
+  const handleSaveResponse = () => {
+    if (!editingCell || !editingText.trim()) {
+      toast({
+        title: "Invalid Response",
+        description: "Response cannot be empty",
+        variant: "destructive",
+      });
+      return;
+    }
+
+    updateMultiSheetResponseMutation.mutate({
+      sheetName: editingCell.sheetName,
+      responseIndex: editingCell.index,
+      newResponse: editingText.trim()
+    });
+  };
+
+  const handleCancelEdit = () => {
+    setEditingCell(null);
+    setEditingText("");
   };
 
   const getCategoryBadge = (category: string) => {
@@ -621,6 +717,7 @@ export const MultiSheetProcessor = () => {
                                 <TableHead className="w-32">Category</TableHead>
                                 <TableHead className="w-24">Status</TableHead>
                                 {processingMode === 'rag' && <TableHead className="w-24">Quality</TableHead>}
+                                {processingMode === 'rag' && <TableHead className="w-24">Actions</TableHead>}
                               </TableRow>
                             </TableHeader>
                             <TableBody>
@@ -635,14 +732,49 @@ export const MultiSheetProcessor = () => {
                                   {processingMode === 'rag' && (
                                     <TableCell className="max-w-[400px] min-w-[400px]">
                                       <div className="bg-muted/20 rounded-md p-3 min-h-[60px] border border-border/30">
-                                        {result.response ? (
-                                          <p className="text-sm leading-relaxed break-words whitespace-pre-wrap">
-                                            {result.response}
-                                          </p>
+                                        {editingCell?.sheetName === sheetName && editingCell?.index === index ? (
+                                          <div className="space-y-2">
+                                            <Textarea
+                                              value={editingText}
+                                              onChange={(e) => setEditingText(e.target.value)}
+                                              className="min-h-[100px] resize-none text-sm"
+                                              disabled={updateMultiSheetResponseMutation.isPending}
+                                              placeholder="Edit the response..."
+                                            />
+                                            <div className="flex gap-2">
+                                              <Button
+                                                size="sm"
+                                                onClick={handleSaveResponse}
+                                                disabled={updateMultiSheetResponseMutation.isPending || !editingText.trim()}
+                                                className="h-7 px-2 text-xs"
+                                              >
+                                                <Save className="h-3 w-3 mr-1" />
+                                                {updateMultiSheetResponseMutation.isPending ? "Saving..." : "Save"}
+                                              </Button>
+                                              <Button
+                                                size="sm"
+                                                variant="outline"
+                                                onClick={handleCancelEdit}
+                                                disabled={updateMultiSheetResponseMutation.isPending}
+                                                className="h-7 px-2 text-xs"
+                                              >
+                                                <X className="h-3 w-3 mr-1" />
+                                                Cancel
+                                              </Button>
+                                            </div>
+                                          </div>
                                         ) : (
-                                          <p className="text-sm text-muted-foreground italic">
-                                            No response generated
-                                          </p>
+                                          <>
+                                            {result.response ? (
+                                              <p className="text-sm leading-relaxed break-words whitespace-pre-wrap">
+                                                {result.response}
+                                              </p>
+                                            ) : (
+                                              <p className="text-sm text-muted-foreground italic">
+                                                No response generated
+                                              </p>
+                                            )}
+                                          </>
                                         )}
                                       </div>
                                     </TableCell>
@@ -685,6 +817,24 @@ export const MultiSheetProcessor = () => {
                                         </div>
                                       ) : (
                                         <span className="text-xs text-muted-foreground">—</span>
+                                      )}
+                                    </TableCell>
+                                  )}
+                                  {processingMode === 'rag' && (
+                                    <TableCell className="w-24">
+                                      {editingCell?.sheetName === sheetName && editingCell?.index === index ? (
+                                        <span className="text-xs text-muted-foreground">Editing...</span>
+                                      ) : (
+                                        <Button
+                                          size="sm"
+                                          variant="outline"
+                                          onClick={() => handleEditResponse(sheetName, index, result.response || "")}
+                                          disabled={updateMultiSheetResponseMutation.isPending}
+                                          className="h-7 px-2 text-xs"
+                                        >
+                                          <Edit className="h-3 w-3 mr-1" />
+                                          Edit
+                                        </Button>
                                       )}
                                     </TableCell>
                                   )}

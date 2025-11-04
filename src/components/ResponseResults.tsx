@@ -2,17 +2,96 @@ import { useState } from "react";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
+import { Textarea } from "@/components/ui/textarea";
 import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from "@/components/ui/accordion";
 import { Alert, AlertDescription } from "@/components/ui/alert";
-import { Download, FileText, RefreshCw, Edit, BarChart3 } from "lucide-react";
+import { Download, FileText, RefreshCw, Edit, BarChart3, Save, X } from "lucide-react";
 import { useSession, Response } from "@/contexts/SessionContext";
 import { useToast } from "@/hooks/use-toast";
 import { Progress } from "@/components/ui/progress";
+import { useMutation, useQueryClient } from "@tanstack/react-query";
 
 export const ResponseResults = () => {
-  const { responses, sessionId } = useSession();
+  const { responses, sessionId, setResponses } = useSession();
   const { toast } = useToast();
+  const queryClient = useQueryClient();
   const [expandedSources, setExpandedSources] = useState<string | null>(null);
+  const [editingResponseId, setEditingResponseId] = useState<string | null>(null);
+  const [editingText, setEditingText] = useState("");
+
+  // Update response mutation
+  const updateResponseMutation = useMutation({
+    mutationFn: async ({ responseIndex, newResponse }: { responseIndex: number, newResponse: string }) => {
+      const response = await fetch("http://localhost:8001/api/responses/update", {
+        method: "PUT",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          session_id: sessionId,
+          requirement_index: responseIndex,
+          new_response: newResponse
+        })
+      });
+      
+      if (!response.ok) {
+        const errorData = await response.json().catch(() => ({}));
+        throw new Error(errorData.detail || 'Failed to update response');
+      }
+      
+      return response.json();
+    },
+    onSuccess: (data, variables) => {
+      // Update local state
+      const updatedResponses = [...responses];
+      updatedResponses[variables.responseIndex] = {
+        ...updatedResponses[variables.responseIndex],
+        response: variables.newResponse,
+        last_modified: new Date().toISOString()
+      };
+      setResponses(updatedResponses);
+      
+      // Reset editing state
+      setEditingResponseId(null);
+      setEditingText("");
+      
+      toast({
+        title: "Response Updated",
+        description: "Your changes have been saved successfully",
+      });
+    },
+    onError: (error) => {
+      toast({
+        title: "Update Failed",
+        description: error instanceof Error ? error.message : "Unknown error occurred",
+        variant: "destructive",
+      });
+    },
+  });
+
+  const handleEditResponse = (response: Response, index: number) => {
+    setEditingResponseId(response.requirement_id || `response-${index}`);
+    setEditingText(response.response);
+  };
+
+  const handleSaveResponse = (responseIndex: number) => {
+    if (!editingText.trim()) {
+      toast({
+        title: "Invalid Response",
+        description: "Response cannot be empty",
+        variant: "destructive",
+      });
+      return;
+    }
+
+    updateResponseMutation.mutate({
+      responseIndex,
+      newResponse: editingText.trim()
+    });
+  };
+
+  const handleCancelEdit = () => {
+    setEditingResponseId(null);
+    setEditingText("");
+  };
 
   const getQualityColor = (score: number) => {
     if (score >= 80) return "text-blue-400";
@@ -232,10 +311,48 @@ export const ResponseResults = () => {
                         <h4 className="text-sm font-semibold mb-2 flex items-center gap-2">
                           Generated Response:
                           <Badge variant="secondary">{getQualityBadge(response.quality_score)}</Badge>
+                          {response.last_modified && (
+                            <Badge variant="outline" className="text-xs">
+                              Modified
+                            </Badge>
+                          )}
                         </h4>
                         <div className="text-sm p-4 bg-muted/50 rounded-md space-y-2">
-                          <p className="whitespace-pre-wrap">{response.response}</p>
-                          <Progress value={response.quality_score} className="h-1.5 mt-3" />
+                          {editingResponseId === (response.requirement_id || `response-${index}`) ? (
+                            <div className="space-y-3">
+                              <Textarea
+                                value={editingText}
+                                onChange={(e) => setEditingText(e.target.value)}
+                                placeholder="Edit the response..."
+                                className="min-h-[120px] resize-none"
+                                disabled={updateResponseMutation.isPending}
+                              />
+                              <div className="flex gap-2">
+                                <Button
+                                  size="sm"
+                                  onClick={() => handleSaveResponse(index)}
+                                  disabled={updateResponseMutation.isPending || !editingText.trim()}
+                                >
+                                  <Save className="h-4 w-4 mr-2" />
+                                  {updateResponseMutation.isPending ? "Saving..." : "Save"}
+                                </Button>
+                                <Button
+                                  size="sm"
+                                  variant="outline"
+                                  onClick={handleCancelEdit}
+                                  disabled={updateResponseMutation.isPending}
+                                >
+                                  <X className="h-4 w-4 mr-2" />
+                                  Cancel
+                                </Button>
+                              </div>
+                            </div>
+                          ) : (
+                            <>
+                              <p className="whitespace-pre-wrap">{response.response}</p>
+                              <Progress value={response.quality_score} className="h-1.5 mt-3" />
+                            </>
+                          )}
                         </div>
                       </div>
 
@@ -268,10 +385,16 @@ export const ResponseResults = () => {
                       )}
 
                       <div className="flex gap-2 pt-2">
-                        <Button variant="outline" size="sm">
-                          <Edit className="h-4 w-4 mr-2" />
-                          Edit Response
-                        </Button>
+                        {editingResponseId !== (response.requirement_id || `response-${index}`) && (
+                          <Button 
+                            variant="outline" 
+                            size="sm"
+                            onClick={() => handleEditResponse(response, index)}
+                          >
+                            <Edit className="h-4 w-4 mr-2" />
+                            Edit Response
+                          </Button>
+                        )}
                         <Button variant="outline" size="sm">
                           <RefreshCw className="h-4 w-4 mr-2" />
                           Regenerate
